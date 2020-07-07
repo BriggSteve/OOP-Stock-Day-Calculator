@@ -1,100 +1,45 @@
 import yfinance as yf
 
+
+# find percentage return for every day in pandas p,
+# then use kadane algorithm to find where the stock's best percentage performance was
 class StockData:
-    def __init__(self):
-        self.flatmondayResults = [] #turn these into dictionaries
-        self.percentagemondayResults = []
+    def __init__(self, ticker, startDate, endDate):
+        self.ticker = ticker
+        self.startDate = startDate
+        self.endDate = endDate
 
-        self.flattuesdayResults = []
-        self.percentagetuesdayResults = []
+    def downloadstock(self):  # downloads the stock data with assigned ticker, start of program
+        self.fianceData = yf.download(self.ticker, start=self.startDate, end=self.endDate, interval="1d")
+        self.fianceData = self.fianceData.dropna()
 
-        self.flatwednesdayResults = []
-        self.percentagewednesdayResults = []
+    def percentagecalc(self):
+        self.percentage = []
+        for index, row in self.fianceData.iterrows():
+            self.percentage.append((row['Close'] - row['Open']) / row['Open'] * 100)
 
-        self.flatthursdayResults = []
-        self.percentagethursdayResults = []
+        self.createcolumn()
 
-        self.flatfridayResults = []
-        self.percentagefridayResults = []
+    def createcolumn(self):
+        self.fianceData['Percentage'] = self.percentage
 
-    def downloadstock(self, ticker, startDate, endDate):
-        fianceData = yf.download(ticker, start=startDate, end=endDate, interval="1d")
-        self.sort(fianceData)
-
-    def sort(self, fianceData): #turn this into a keyed dictionary?
-
-        for index, row in fianceData.iterrows():
-            if index.isoweekday() == 1:
-                self.flatmondayResults.append(round(self.flatgaincalc(open=row['Open'], close=row['Close']), 2))
-                self.percentagemondayResults.append(round(self.percentagegaincalc(open=row['Open'], close=row['Close']), 2))
-
-            if index.isoweekday() == 2:
-                self.flattuesdayResults.append(round(self.flatgaincalc(open=row['Open'], close=row['Close']), 2))
-                self.percentagetuesdayResults.append(round(self.percentagegaincalc(open=row['Open'], close=row['Close']), 2))
-
-            if index.isoweekday() == 3:
-                self.flatwednesdayResults.append(round(self.flatgaincalc(open=row['Open'], close=row['Close']), 2))
-                self.percentagewednesdayResults.append(round(self.percentagegaincalc(open=row['Open'], close=row['Close']), 2))
-
-            if index.isoweekday() == 4:
-                self.flatthursdayResults.append(round(self.flatgaincalc(open=row['Open'], close=row['Close']), 2))
-                self.percentagethursdayResults.append(round(self.percentagegaincalc(open=row['Open'], close=row['Close']), 2))
-
-            if index.isoweekday() == 5:
-                self.flatfridayResults.append(round(self.flatgaincalc(open=row['Open'], close=row['Close']), 2))
-                self.percentagefridayResults.append(round(self.percentagegaincalc(open=row['Open'], close=row['Close']), 2))
-
-    def flatgaincalc(self, close, open):
-        total = close - open
-        return total
-
-    def percentagegaincalc(self, close, open):
-        percentage = (close - open) / open * 100
-        return percentage
-
-    def printpercentage(self):
-        print("Monday Percentage Results: ")
-        print(["{}{}".format(i, "%") for i in self.percentagemondayResults])
-
-        print("Tuesday Percentage Results: ")
-        print(["{}{}".format(i, "%") for i in self.percentagetuesdayResults])
-
-        print("Wednesday Percentage Results: ")
-        print(["{}{}".format(i, "%") for i in self.percentagewednesdayResults])
-
-        print("Thursday Percentage Results: ")
-        print(["{}{}".format(i, "%") for i in self.percentagethursdayResults])
-
-        print("Friday Percentage Results: ")
-        print(["{}{}".format(i, "%") for i in self.percentagefridayResults])
-
-    def printflat(self):
-        print("Monday Flat Results: ")
-        print(self.flatmondayResults)
-
-        print("Tuesday Flat Results: ")
-        print(self.flattuesdayResults)
-
-        print("Wednesday Flat Results: ")
-        print(self.flatwednesdayResults)
-
-        print("Thursday Flat Results: ")
-        print(self.flatthursdayResults)
-
-        print("Friday Flat Results: ")
-        print(self.flatfridayResults)
-
-    def flatarrayconcat(self):
-        flatdays = self.flatmondayResults, self.flattuesdayResults, self.flatwednesdayResults, self.flatthursdayResults, self.flatfridayResults
-        return flatdays
+    def test(self):
+        print(self.fianceData)
 
 
+def call():
+    startDate = "2010-06-01"
+    endDate = "2020-06-01"
 
-startDate = "2010-06-01"
-endDate = "2020-06-01"
+    stock1 = StockData("ATVI", startDate, endDate)
+    stock1.downloadstock()
+    stock1.percentagecalc()
+    stock1.test()
 
-ATVI = StockData()
-ATVI.downloadstock("ATVI", startDate, endDate)
+    stock2 = StockData("KO", startDate, endDate)
+    stock2.downloadstock()
+    stock2.percentagecalc()
+    stock2.test()
 
-SBUX = StockData()
-SBUX.downloadstock("SBUX", startDate, endDate)
+
+call()
