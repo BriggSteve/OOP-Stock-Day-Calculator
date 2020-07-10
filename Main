@@ -1,13 +1,22 @@
 import yfinance as yf
-
+import numpy as np
 
 # find percentage return for every day in pandas p,
 # then use kadane algorithm to find where the stock's best percentage performance was
+# find a way to cull the day lists so the days are even
+# add additional columns for each day to fiancedata
+
+
 class StockData:
     def __init__(self, ticker, startDate, endDate):
         self.ticker = ticker
         self.startDate = startDate
         self.endDate = endDate
+        self.percentage = []
+        self.averagepercentagegain = None
+        self.averagepercentageloss = None
+        self.days = []
+        self.percentagedays = []
 
     def downloadstock(self):  # downloads the stock data with assigned ticker, start of program
         self.fianceData = yf.download(self.ticker, start=self.startDate, end=self.endDate, interval="1d")
@@ -26,20 +35,110 @@ class StockData:
     def test(self):
         print(self.fianceData)
 
+    def daysort(self):
+        monpercent = []
+        tuepercent = []
+        wenpercent = []
+        thurpercent = []
+        fripercent = []
+
+        mon = []
+        tue = []
+        wen = []
+        thur = []
+        fri = []
+        for index, row in self.fianceData.iterrows():
+            if index.isoweekday() == 1:
+                percentage = row['Percentage']
+                open = row['Open']
+
+                mon.append(open)
+                monpercent.append(percentage)
+
+            if index.isoweekday() == 2:
+                percentage = row['Percentage']
+                open = row['Open']
+
+                tue.append(open)
+                tuepercent.append(percentage)
+
+            if index.isoweekday() == 3:
+                percentage = row['Percentage']
+                open = row['Open']
+
+                wen.append(open)
+                wenpercent.append(percentage)
+
+            if index.isoweekday() == 4:
+                percentage = row['Percentage']
+                open = row['Open']
+
+                thur.append(open)
+                thurpercent.append(percentage)
+
+            if index.isoweekday() == 5:
+                percentage = row['Percentage']
+                open = row['Open']
+
+                fri.append(open)
+                fripercent.append(percentage)
+
+        self.days = [mon, tue, wen, thur, fri]
+        self.percentagedays = [monpercent, tuepercent, wenpercent, thurpercent, fripercent]
+
+    def avgpercentage(self):
+        positive = []
+        negative = []
+        for index, row in self.fianceData.iterrows():
+            if row["Percentage"] > 0:
+                positive.append(row["Percentage"])
+            if row["Percentage"] < 0:
+                negative.append(row["Percentage"])
+
+        self.averagepercentagegain = np.mean(positive)
+        self.averagepercentageloss = np.mean(negative)
+
+    def averagetolerence(self):
+        self.avgpercentage()
+        print("Average positive gain")
+        print(self.averagepercentagegain)
+        print("Average negative loss")
+        print(self.averagepercentageloss)
+
+    def bestday(self):
+        self.daysort()
+        averagemon = sum(self.percentagedays[0]) / len(self.percentagedays[0])
+        averagetues = sum(self.percentagedays[1]) / len(self.percentagedays[1])
+        averagewed = sum(self.percentagedays[2]) / len(self.percentagedays[2])
+        averagethur = sum(self.percentagedays[3]) / len(self.percentagedays[3])
+        averagefri = sum(self.percentagedays[4]) / len(self.percentagedays[4])
+
+        daylist = {"monday": averagemon, "tuesday": averagetues, "wednesday": averagewed, "thursday": averagethur,
+                   "friday": averagefri}
+        bestDay = max(daylist, key=daylist.get)
+        print(" The best day on average is: " + bestDay)
+        worstDay = min(daylist, key=daylist.get)
+        print(" The worst day on average is: " + worstDay)
+        bestworstProfit = daylist[bestDay] - daylist[worstDay]
+        print(" The average percentage of selling on best day and buying on worst day: " + str(bestworstProfit))
+
+    def summary(self):
+        #print(len(self.fianceData["Percentage"]))
+        print(" Total number of days for stock: " + str(len(self.fianceData["Percentage"])))
 
 def call():
-    startDate = "2010-06-01"
-    endDate = "2020-06-01"
+    startdate = "2010-06-01"
+    enddate = "2020-06-01"
 
-    stock1 = StockData("ATVI", startDate, endDate)
+    stock1 = StockData("CRM", startdate, enddate)
     stock1.downloadstock()
     stock1.percentagecalc()
-    stock1.test()
 
-    stock2 = StockData("KO", startDate, endDate)
-    stock2.downloadstock()
-    stock2.percentagecalc()
-    stock2.test()
+    stock1.test()
+    stock1.averagetolerence()
+    stock1.bestday()
+    stock1.summary()
+
 
 
 call()
